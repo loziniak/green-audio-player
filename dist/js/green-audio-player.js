@@ -10,25 +10,21 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
-
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
-
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
-
-function _iterableToArrayLimit(arr, i) { if (!(Symbol.iterator in Object(arr) || Object.prototype.toString.call(arr) === "[object Arguments]")) { return; } var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 var GreenAudioPlayer = /*#__PURE__*/function () {
   function GreenAudioPlayer(player, options) {
     _classCallCheck(this, GreenAudioPlayer);
-
     this.audioPlayer = typeof player === 'string' ? document.querySelector(player) : player;
     var opts = options || {};
     var audioElement = this.audioPlayer.innerHTML;
@@ -66,7 +62,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
       play: 'Play',
       download: 'Download'
     };
-
     if (!this.enableKeystrokes) {
       for (var i = 0; i < this.span.length; i++) {
         this.span[i].outerHTML = '';
@@ -78,38 +73,30 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
       this.sliders[1].setAttribute('tabindex', 0);
       this.download.setAttribute('tabindex', -1);
       this.downloadLink.setAttribute('tabindex', -1);
-
       for (var j = 0; j < this.svg.length; j++) {
         this.svg[j].setAttribute('tabindex', 0);
         this.svg[j].setAttribute('focusable', true);
       }
-
       for (var k = 0; k < this.img.length; k++) {
         this.img[k].setAttribute('tabindex', 0);
       }
     }
-
     if (this.showTooltips) {
       this.playPauseBtn.setAttribute('title', this.labels.play);
       this.volumeBtn.setAttribute('title', this.labels.volume.open);
       this.downloadLink.setAttribute('title', this.labels.download);
     }
-
     if (opts.outlineControls || false) {
       this.audioPlayer.classList.add('player-accessible');
     }
-
     if (opts.showDownloadButton || false) {
       this.showDownload();
     }
-
     this.initEvents();
     this.directionAware();
     this.overcomeIosLimitations();
-
     if ('autoplay' in this.player.attributes) {
       var promise = this.player.play();
-
       if (promise !== undefined) {
         promise.then(function () {
           var playPauseButton = self.player.parentElement.querySelector('.play-pause-btn__icon');
@@ -122,14 +109,12 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
         });
       }
     }
-
     if ('preload' in this.player.attributes && this.player.attributes.preload.value === 'none') {
       this.playPauseBtn.style.visibility = 'visible';
       this.loading.style.visibility = 'hidden';
     }
   }
-
-  _createClass(GreenAudioPlayer, [{
+  return _createClass(GreenAudioPlayer, [{
     key: "initEvents",
     value: function initEvents() {
       var self = this;
@@ -139,42 +124,36 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
           var handleMethod = self.currentlyDragged.dataset.method;
           var listener = self[handleMethod].bind(self);
           window.addEventListener('mousemove', listener, false);
-
           if (self.currentlyDragged.parentElement.parentElement === self.sliders[0]) {
             self.paused = self.player.paused;
             if (self.paused === false) self.togglePlay();
           }
-
           window.addEventListener('mouseup', function () {
             if (self.currentlyDragged !== false && self.currentlyDragged.parentElement.parentElement === self.sliders[0] && self.paused !== self.player.paused) {
               self.togglePlay();
             }
-
             self.currentlyDragged = false;
             window.removeEventListener('mousemove', listener, false);
           }, false);
         }
-      }); // for mobile touches
+      });
 
+      // for mobile touches
       self.audioPlayer.addEventListener('touchstart', function (event) {
         if (self.isDraggable(event.target)) {
           var _event$targetTouches = _slicedToArray(event.targetTouches, 1);
-
           self.currentlyDragged = _event$targetTouches[0];
           var handleMethod = self.currentlyDragged.target.dataset.method;
           var listener = self[handleMethod].bind(self);
           window.addEventListener('touchmove', listener, false);
-
           if (self.currentlyDragged.parentElement.parentElement === self.sliders[0]) {
             self.paused = self.player.paused;
             if (self.paused === false) self.togglePlay();
           }
-
           window.addEventListener('touchend', function () {
             if (self.currentlyDragged !== false && self.currentlyDragged.parentElement.parentElement === self.sliders[0] && self.paused !== self.player.paused) {
               self.togglePlay();
             }
-
             self.currentlyDragged = false;
             window.removeEventListener('touchmove', listener, false);
           }, false);
@@ -200,23 +179,20 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
       this.volumeBtn.addEventListener('click', this.showHideVolume.bind(self));
       window.addEventListener('resize', self.directionAware.bind(self));
       window.addEventListener('scroll', self.directionAware.bind(self));
-
       for (var i = 0; i < this.sliders.length; i++) {
         var pin = this.sliders[i].querySelector('.pin');
         this.sliders[i].addEventListener('click', self[pin.dataset.method].bind(self));
       }
-
       this.downloadLink.addEventListener('click', this.downloadAudio.bind(self));
     }
   }, {
     key: "overcomeIosLimitations",
     value: function overcomeIosLimitations() {
       var self = this;
-
       if (this.isDevice) {
         // iOS does not support "canplay" event
-        this.player.addEventListener('loadedmetadata', this.hideLoadingIndicator.bind(self)); // iOS does not let "volume" property to be set programmatically
-
+        this.player.addEventListener('loadedmetadata', this.hideLoadingIndicator.bind(self));
+        // iOS does not let "volume" property to be set programmatically
         this.audioPlayer.querySelector('.volume').style.display = 'none';
         this.audioPlayer.querySelector('.controls').style.marginRight = '0';
       }
@@ -232,20 +208,17 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
           canDrag = true;
         }
       }
-
       return canDrag;
     }
   }, {
     key: "inRange",
     value: function inRange(event) {
       var touch = 'touches' in event; // instanceof TouchEvent may also be used
-
       var rangeBox = this.getRangeBox(event);
       var sliderPositionAndDimensions = rangeBox.getBoundingClientRect();
       var direction = rangeBox.dataset.direction;
       var min = null;
       var max = null;
-
       if (direction === 'horizontal') {
         min = sliderPositionAndDimensions.x;
         max = min + sliderPositionAndDimensions.width;
@@ -257,7 +230,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
         var clientY = touch ? event.touches[0].clientY : event.clientY;
         if (clientY < min || clientY > max) return false;
       }
-
       return true;
     }
   }, {
@@ -274,7 +246,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
     value: function updateVolume() {
       this.volumeProgress.setAttribute('aria-valuenow', this.player.volume * 100);
       this.volumeProgress.style.height = "".concat(this.player.volume * 100, "%");
-
       if (this.player.volume >= 0.5) {
         this.speaker.attributes.d.value = 'M14.667 0v2.747c3.853 1.146 6.666 4.72 6.666 8.946 0 4.227-2.813 7.787-6.666 8.934v2.76C20 22.173 24 17.4 24 11.693 24 5.987 20 1.213 14.667 0zM18 11.693c0-2.36-1.333-4.386-3.333-5.373v10.707c2-.947 3.333-2.987 3.333-5.334zm-18-4v8h5.333L12 22.36V1.027L5.333 7.693H0z';
       } else if (this.player.volume < 0.5 && this.player.volume > 0.05) {
@@ -288,19 +259,15 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
     value: function getRangeBox(event) {
       var rangeBox = event.target;
       var el = this.currentlyDragged;
-
       if (event.type === 'click' && this.isDraggable(event.target)) {
         rangeBox = event.target.parentElement.parentElement;
       }
-
       if (event.type === 'mousemove') {
         rangeBox = el.parentElement.parentElement;
       }
-
       if (event.type === 'touchmove') {
         rangeBox = el.target.parentElement.parentElement;
       }
-
       return rangeBox;
     }
   }, {
@@ -311,7 +278,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
       var slider = this.getRangeBox(event);
       var sliderPositionAndDimensions = slider.getBoundingClientRect();
       var K = 0;
-
       if (slider.dataset.direction === 'horizontal') {
         // if event is touch
         var clientX = touch ? event.touches[0].clientX : event.clientX;
@@ -324,7 +290,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
         var offsetY = clientY - sliderPositionAndDimensions.top;
         K = 1 - offsetY / height;
       }
-
       return K;
     }
   }, {
@@ -351,7 +316,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
     key: "showHideVolume",
     value: function showHideVolume() {
       this.volumeControls.classList.toggle('hidden');
-
       if (this.volumeBtn.getAttribute('aria-label') === this.labels.volume.open) {
         this.volumeBtn.setAttribute('aria-label', this.labels.volume.close);
         this.hasSetAttribute(this.volumeBtn, 'title', this.labels.volume.close);
@@ -373,7 +337,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
     key: "preloadNone",
     value: function preloadNone() {
       var self = this;
-
       if (!this.player.duration) {
         self.playPauseBtn.style.visibility = 'hidden';
         self.loading.style.visibility = 'visible';
@@ -383,12 +346,10 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
     key: "togglePlay",
     value: function togglePlay() {
       this.preloadNone();
-
       if (this.player.paused) {
         if (this.stopOthersOnPlay) {
           GreenAudioPlayer.stopOtherPlayers();
         }
-
         GreenAudioPlayer.playPlayer(this.player);
         this.playPauseBtn.setAttribute('aria-label', this.labels.pause);
         this.hasSetAttribute(this.playPauseBtn, 'title', this.labels.pause);
@@ -412,7 +373,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
     value: function setCurrentTime(time) {
       var pos = this.player.currentTime;
       var end = Math.floor(this.player.duration);
-
       if (pos + time < 0 && pos === 0) {
         this.player.currentTime = this.player.currentTime;
       } else if (pos + time < 0) {
@@ -428,7 +388,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
     value: function setVolume(volume) {
       if (this.isDevice) return;
       var vol = this.player.volume;
-
       if (vol + volume >= 0 && vol + volume < 1) {
         this.player.volume += volume;
       } else if (vol + volume <= 0) {
@@ -441,7 +400,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
     key: "unPressKb",
     value: function unPressKb(event) {
       var evt = event || window.event;
-
       if (this.seeking && (evt.keyCode === 37 || evt.keyCode === 39)) {
         this.togglePlay();
         this.seeking = false;
@@ -451,10 +409,8 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
     key: "pressKb",
     value: function pressKb(event) {
       var evt = event || window.event;
-
       switch (evt.keyCode) {
         case 13: // Enter
-
         case 32:
           // Spacebar
           if (document.activeElement.parentNode === this.playPauseBtn) {
@@ -468,16 +424,12 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
                 this.volumeBtn.focus();
               }
             }
-
             this.showHideVolume();
           }
-
           if (evt.keyCode === 13 && this.showDownload && document.activeElement.parentNode === this.downloadLink) {
             this.downloadLink.focus();
           }
-
           break;
-
         case 37:
         case 39:
           // horizontal Arrows
@@ -487,15 +439,12 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
             } else {
               this.setCurrentTime(+5);
             }
-
             if (!this.player.paused && this.player.seeking) {
               this.togglePlay();
               this.seeking = true;
             }
           }
-
           break;
-
         case 38:
         case 40:
           // vertical Arrows
@@ -506,13 +455,10 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
               this.setVolume(-0.05);
             }
           }
-
           if (document.activeElement.parentNode === this.volumeBtn) {
             this.showVolume();
           }
-
           break;
-
         default:
           break;
       }
@@ -546,7 +492,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
     key: "directionAware",
     value: function directionAware() {
       this.volumeControls.classList.remove('top', 'middle', 'bottom');
-
       if (window.innerHeight < 250) {
         this.volumeControls.classList.add('middle');
       } else if (this.audioPlayer.getBoundingClientRect().top < 180) {
@@ -594,18 +539,13 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
     key: "stopOtherPlayers",
     value: function stopOtherPlayers() {
       var players = document.querySelectorAll('.green-audio-player audio');
-
       for (var i = 0; i < players.length; i++) {
         GreenAudioPlayer.pausePlayer(players[i]);
       }
     }
   }]);
-
-  return GreenAudioPlayer;
 }();
-
-var _default = GreenAudioPlayer;
-exports.default = _default;
+var _default = exports.default = GreenAudioPlayer;
 
 },{}]},{},[1])(1)
 });
