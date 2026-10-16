@@ -15,7 +15,7 @@ class GreenAudioPlayer {
         this.volumeBtn = this.audioPlayer.querySelector('.volume__button');
         this.volumeControls = this.audioPlayer.querySelector('.volume__controls');
         this.volumeProgress = this.volumeControls.querySelector('.volume__progress');
-        this.player = this.audioPlayer.querySelector('audio');
+        this.player = opts.altAudioBackend || this.audioPlayer.querySelector('audio');
         this.currentTime = this.audioPlayer.querySelector('.controls__current-time');
         this.totalTime = this.audioPlayer.querySelector('.controls__total-time');
         this.speaker = this.audioPlayer.querySelector('.volume__speaker');
@@ -102,11 +102,116 @@ class GreenAudioPlayer {
 
     static init(options) {
         const players = document.querySelectorAll(options.selector);
+        if (options.altAudioBackend && players.length > 1)
+            throw new Error('Custom Audio backend only allowed for single player setup.');
 
         players.forEach((player) => {
             /* eslint-disable no-new */
             new GreenAudioPlayer(player, options);
         });
+    }
+
+
+    static createAltBackend(
+        // audio tag attributes equivalents:
+        autoplay,         // boolean
+        preload,          // 'none' | 'metadata' | 'auto' | ''
+
+        // functions GreenAudioPlayer will call to play/pause:
+        play,             // () => Promise<void>
+        pause,            // () => void
+
+        // functions GreenAudioPlayer will call to seek and set volume:
+        setCurrentTime,   // (number) => void
+        setVolume,        // (number) => void
+
+        // GreenAudioPlayer will call these to supply listeners, that have to be called, whenever sound engine's state changes:
+        addPositionListener,     // ((number) => void) => void:  current time/position changes ('timeupdate', currentTime)
+        addVolumeListener,       // ((number) => void) => void:  volume changes ('volumechange', volume)
+        addSeekingListener,      // ((boolean) => void) => void: time/position starts/stops to change ('seeking', 'seeked', seeking)
+        addDurationListener,     // ((number) => void) => void:  file is loaded and/or duration changes ('loadedmetadata', 'canplay', duration)
+        addEndedListener,        // (() => void) => void:        file has ended, or no more data is available ('ended')
+        addSeekableListener,     // ((bolean) => void) => void:  backend can or cannot be seeked, eg. when loaded/unloaded new file (seekable)
+        addPausedListener,       // ((bolean) => void) => void:  audio gets (un)paused (paused)
+        addSrcListener           // ((string) => void) => void:  file download url changes, eg. ne file is loaded (currentSrc)
+    ) {
+        const altAudioBackend = {
+            attributes: {},
+            currentTime: 0,
+            volume: 0,
+            seeking: false,
+            duration: 0,
+            seekable: false,
+            paused: true,
+            currentSrc: ''
+        };
+
+        if (typeof autoplay === 'boolean') altAudioBackend.attributes.autoplay = { value: autoplay };
+        if (typeof preload === 'string') altAudioBackend.attributes.preload = { value: preload };
+        altAudioBackend.play = play;
+        altAudioBackend.pause = pause;
+        altAudioBackend.setCurrentTime = setCurrentTime;
+        altAudioBackend.setVolume = setVolume;
+
+        altAudioBackend.addEventListener = (type, listener) => {
+            switch (type) {
+                case 'timeupdate':
+                    addPositionListener((currentTime) => {
+                        listener();
+                    });
+                    break;
+                case 'volumechange':
+                    addVolumeListener((volume) => {
+                        listener();
+                    });
+                    break;
+                case 'seeking':
+                    addSeekingListener((seeking) => {
+                        if (seeking) listener();
+                    });
+                    break;
+                case 'seeked':
+                    addSeekingListener((seeking) => {
+                        if (!seeking) listener();
+                    });
+                    break;
+                case 'loadedmetadata':
+                case 'canplay':
+                    addDurationListener((duration) => {
+                        if (duration) listener();
+                    });
+                    break;
+                case 'ended':
+                    addEndedListener(listener);
+                    break;
+                default:
+                    throw new Error(`Unknown event type: "${type}"`);
+            }
+        };
+
+        addPositionListener((currentTime) => {
+            altAudioBackend.currentTime = currentTime;
+        });
+        addVolumeListener((volume) => {
+            altAudioBackend.volume = volume;
+        });
+        addSeekingListener((seeking) => {
+            altAudioBackend.seeking = seeking;
+        });
+        addDurationListener((duration) => {
+            altAudioBackend.duration = duration;
+        });
+        addSeekableListener((seekable) => {
+            altAudioBackend.seekable = seekable ? [true] : false;
+        });
+        addPausedListener((paused) => {
+            altAudioBackend.paused = paused;
+        });
+        addSrcListener((currentSrc) => {
+            altAudioBackend.currentSrc = currentSrc;
+        });
+
+        return altAudioBackend;
     }
 
     static getTemplate() {
@@ -212,10 +317,11 @@ class GreenAudioPlayer {
         });
 
         this.playPauseBtn.addEventListener('click', this.togglePlay.bind(self));
-        this.player.addEventListener('timeupdate', this.updateProgress.bind(self));
-        this.player.addEventListener('volumechange', this.updateVolume.bind(self));
-        this.player.volume = 0.81;
-        this.player.addEventListener('loadedmetadata', () => {
+        this.player.addEventListener('timeupdate', this.updateProgress.bind(self)); // currentTime changes
+        this.player.addEventListener('volumechange', this.updateVolume.bind(self)); // volume changes
+        if (typeof this.player.volume !== 'undefined') this.player.volume = 0.81;
+        if (typeof this.player.setVolume !== 'undefined') this.player.setVolume(0.81);
+        this.player.addEventListener('loadedmetadata', () => { // metadata loaded: duration
             self.totalTime.textContent = GreenAudioPlayer.formatTime(self.player.duration);
         });
         this.player.addEventListener('seeking', this.showLoadingIndicator.bind(self));
@@ -223,7 +329,8 @@ class GreenAudioPlayer {
         this.player.addEventListener('canplay', this.hideLoadingIndicator.bind(self));
         this.player.addEventListener('ended', () => {
             GreenAudioPlayer.pausePlayer(self.player, 'ended');
-            self.player.currentTime = 0;
+            if (typeof self.player.currentTime !== 'undefined') self.player.currentTime = 0;
+            if (typeof self.player.setCurrentTime !== 'undefined') self.player.setCurrentTime(0);
             self.playPauseBtn.setAttribute('aria-label', self.labels.play);
             self.hasSetAttribute(self.playPauseBtn, 'title', self.labels.play);
         });
@@ -348,7 +455,9 @@ class GreenAudioPlayer {
     rewind(event) {
         if (this.player.seekable && this.player.seekable.length) { // no seek if not (pre)loaded
             if (this.inRange(event)) {
-                this.player.currentTime = this.player.duration * this.getCoefficient(event);
+                const newTime = this.player.duration * this.getCoefficient(event);
+                if (typeof this.player.currentTime !== 'undefined') this.player.currentTime = newTime;
+                if (typeof this.player.setCurrentTime !== 'undefined') this.player.setCurrentTime(newTime);
             }
         }
     }
@@ -378,7 +487,9 @@ class GreenAudioPlayer {
 
     changeVolume(event) {
         if (this.inRange(event)) {
-            this.player.volume = Math.round(this.getCoefficient(event) * 50) / 50;
+            const newVolume = Math.round(this.getCoefficient(event) * 50) / 50;
+            if (typeof this.player.volume !== 'undefined') this.player.volume = newVolume;
+            if (typeof this.player.setVolume !== 'undefined') this.player.setVolume(newVolume);
         }
     }
 
@@ -423,27 +534,33 @@ class GreenAudioPlayer {
     setCurrentTime(time) {
         const pos = this.player.currentTime;
         const end = Math.floor(this.player.duration);
+        var newTime = 0;
         if (pos + time < 0 && pos === 0) {
-            this.player.currentTime = this.player.currentTime;
+            newTime = this.player.currentTime;
         } else if (pos + time < 0) {
-            this.player.currentTime = 0;
+            newTime = 0;
         } else if (pos + time > end) {
-            this.player.currentTime = end;
+            newTime = end;
         } else {
-            this.player.currentTime += time;
+            newTime = this.player.currentTime + time;
         }
+        if (typeof this.player.currentTime !== 'undefined') this.player.currentTime = newTime;
+        if (typeof this.player.setCurrentTime !== 'undefined') this.player.setCurrentTime(newTime);
     }
 
     setVolume(volume) {
         if (this.isDevice) return;
         const vol = this.player.volume;
+        var newVolume = 0;
         if (vol + volume >= 0 && vol + volume < 1) {
-            this.player.volume += volume;
+            newVolume = this.player.volume + volume;
         } else if (vol + volume <= 0) {
-            this.player.volume = 0;
+            newVolume = 0;
         } else {
-            this.player.volume = 1;
+            newVolume = 1;
         }
+        if (typeof this.player.volume !== 'undefined') this.player.volume = newVolume;
+        if (typeof this.player.setVolume !== 'undefined') this.player.setVolume(newVolume);
     }
 
     unPressKb(event) {

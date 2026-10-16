@@ -59,12 +59,33 @@ you can add the loop attribute to the audio tag.
 </div>
 ```
 
-This will initialize the Green Audio Player
+This will **initialize** the Green Audio Player on first matching element.
 ```javascript
 new GreenAudioPlayer('.gap-example');
 ```
 
-You can add multiple players on a single page.
+By default, internal `audio` tag is used as a playback backend, but you can use **any other sound api** by supplying needed values/functions to `createAltBackend()` helper function to create backend object mimicking necessary `HTMLMediaElement` api, and assign this object to `altAudioBackend` option:
+```javascript
+new GreenAudioPlayer('.gap-example', { altAudioBackend: GreenAudioPlayer.createAltBackend(
+    true,       // autoplay, boolean   (optional)
+    undefined,  // preload,  boolean,  (optional)
+    play,       // () => Promise<void>
+    pause,      // () => void
+    setCurrentTime,   // (number) => void
+    setVolume,        // (number) => void
+    // GreenAudioPlayer will call these to supply listeners, that have to be called, whenever sound engine's state changes:
+    addPositionListener,     // ((number) => void) => void:  current time/position changes ('timeupdate', currentTime)
+    addVolumeListener,       // ((number) => void) => void:  volume changes ('volumechange', volume)
+    addSeekingListener,      // ((boolean) => void) => void: time/position starts/stops to change ('seeking', 'seeked', seeking)
+    addDurationListener,     // ((number) => void) => void:  file is loaded and/or duration changes ('loadedmetadata', 'canplay', duration)
+    addEndedListener,        // (() => void) => void:        file has ended, or no more data is available ('ended')
+    addSeekableListener,     // ((bolean) => void) => void:  backend can or cannot be seeked, eg. when loaded/unloaded new file (seekable)
+    addPausedListener,       // ((bolean) => void) => void:  audio gets (un)paused (paused)
+    addSrcListener           // ((string) => void) => void:  file download url changes, eg. ne file is loaded (currentSrc)
+) });
+```
+
+You can add **multiple** players on a single page.
 
 There's a shorter method for initializing several Green Audio Players:
 ```js
@@ -84,6 +105,9 @@ Refer to `/examples` folder for demos of single and multiple players.
 | showDownloadButton | Allow audio file download. Displays the download button. | `true`, `false` | `false`
 | enableKeystrokes | Players have keystrokes associated with functions. | `true`, `false` | `false`
 | showTooltips | Labels for play, volume and download buttons visible on focus | `true`, `false` | `false`
+| outlineControls | Outline player controls for accessibility | `true`, `false` | `false`
+| selector | CSS selector for elements to be converted to players by `init` function | string | (required)
+| altAudioBackend | Use own implementation of Audio api | object | Use `<audio>` HTML tag
 
 The tooltip option requires setting `showTooltips` to true on your player.
 
@@ -91,7 +115,7 @@ The tooltip option requires setting `showTooltips` to true on your player.
 
 In order to improve accessibility, keyboard navigation can be enabled, by passing the `enableKeystrokes` option.
 By default, the outline is disabled on elements.
-If you want to add outline to elements add `player-accessible` class to the player element:
+If you want to add outline to elements, use `outlineControls` option, or add `player-accessible` class to the player element:
 
 ```html
 <div class="player-1 player-accessible">
