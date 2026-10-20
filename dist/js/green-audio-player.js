@@ -21,7 +21,7 @@ function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Can
 function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
 function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, e) { if ("object" != _typeof(t) || !t) return t; var r; if ("undefined" != typeof Symbol && void 0 !== (r = t[Symbol.toPrimitive])) { var i = r.call(t, e || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === e ? String : Number)(t); }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 var GreenAudioPlayer = /*#__PURE__*/function () {
   function GreenAudioPlayer(player, options) {
     _classCallCheck(this, GreenAudioPlayer);
@@ -104,7 +104,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
           self.playPauseBtn.setAttribute('aria-label', self.labels.pause);
           self.hasSetAttribute(self.playPauseBtn, 'title', self.labels.pause);
         }).catch(function () {
-          // eslint-disable-next-line no-console
           console.error('Green Audio Player Error: Autoplay has been prevented, because it is not allowed by this browser.');
         });
       }
@@ -519,7 +518,6 @@ var GreenAudioPlayer = /*#__PURE__*/function () {
       var players = document.querySelectorAll(options.selector);
       if (options.altAudioBackend && players.length > 1) throw new Error('Custom Audio backend only allowed for single player setup.');
       players.forEach(function (player) {
-        /* eslint-disable no-new */
         new GreenAudioPlayer(player, options);
       });
     }

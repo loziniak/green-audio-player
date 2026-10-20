@@ -97,6 +97,45 @@ GreenAudioPlayer.init({
 
 Refer to `/examples` folder for demos of single and multiple players.
 
+### TypeScript Support
+
+The library fully supports TypeScript with built-in type declarations. When using TypeScript, you get full IntelliSense and type checking.
+
+Example usage in TypeScript:
+
+```typescript
+// Initialize single player with type safety
+new GreenAudioPlayer('#player-container', {
+  showTooltips: true,
+  showDownloadButton: false
+});
+
+// Initialize multiple players
+GreenAudioPlayer.init({
+  selector: '.player-container',
+  stopOthersOnPlay: true
+});
+
+// Custom audio backend with full typing
+const audioBackend = GreenAudioPlayer.createAltBackend(
+  false,         // autoplay: boolean
+  'metadata',    // preload: 'none' | 'metadata' | 'auto'
+  () => audio.play(),      // play: () => Promise<void>
+  () => audio.pause(),     // pause: () => void
+  (time: number) => { audio.currentTime = time; },      // setCurrentTime
+  (volume: number) => { audio.volume = volume; },   // setVolume
+  (cb: (time: number) => void) => { audio.addEventListener('timeupdate', cb); }, // addPositionListener
+  (cb: (vol: number) => void) => { audio.addEventListener('volumechange', cb); }, // addVolumeListener
+  (cb: (seeking: boolean) => void) => { /* add seeking listeners */ },
+  (cb: (dur: number) => void) => { audio.addEventListener('loadedmetadata', cb); }, // addDurationListener
+  (cb: () => void) => { audio.addEventListener('ended', cb); }, // addEndedListener
+  (cb: (seekable: boolean) => void) => { /* add seekable listener */ },
+  (cb: (src: string) => void) => { audio.addEventListener('srcchange', cb); }, // addSrcListener
+);
+```
+
+All types are exported: `GreenAudioPlayer`, `GreenAudioPlayerOptions`, and `PartialAudioBackend`.
+
 ## Options
 
 | Option | Description | Values | Default |

@@ -89,7 +89,6 @@ class GreenAudioPlayer {
                     self.playPauseBtn.setAttribute('aria-label', self.labels.pause);
                     self.hasSetAttribute(self.playPauseBtn, 'title', self.labels.pause);
                 }).catch(() => {
-                    // eslint-disable-next-line no-console
                     console.error('Green Audio Player Error: Autoplay has been prevented, because it is not allowed by this browser.');
                 });
             }
@@ -106,7 +105,6 @@ class GreenAudioPlayer {
             throw new Error('Custom Audio backend only allowed for single player setup.');
 
         players.forEach((player) => {
-            /* eslint-disable no-new */
             new GreenAudioPlayer(player, options);
         });
     }
@@ -155,37 +153,37 @@ class GreenAudioPlayer {
 
         altAudioBackend.addEventListener = (type, listener) => {
             switch (type) {
-                case 'timeupdate':
-                    addPositionListener((currentTime) => {
-                        listener();
-                    });
-                    break;
-                case 'volumechange':
-                    addVolumeListener((volume) => {
-                        listener();
-                    });
-                    break;
-                case 'seeking':
-                    addSeekingListener((seeking) => {
-                        if (seeking) listener();
-                    });
-                    break;
-                case 'seeked':
-                    addSeekingListener((seeking) => {
-                        if (!seeking) listener();
-                    });
-                    break;
-                case 'loadedmetadata':
-                case 'canplay':
-                    addDurationListener((duration) => {
-                        if (duration) listener();
-                    });
-                    break;
-                case 'ended':
-                    addEndedListener(listener);
-                    break;
-                default:
-                    throw new Error(`Unknown event type: "${type}"`);
+            case 'timeupdate':
+                addPositionListener((currentTime) => {
+                    listener();
+                });
+                break;
+            case 'volumechange':
+                addVolumeListener((volume) => {
+                    listener();
+                });
+                break;
+            case 'seeking':
+                addSeekingListener((seeking) => {
+                    if (seeking) listener();
+                });
+                break;
+            case 'seeked':
+                addSeekingListener((seeking) => {
+                    if (!seeking) listener();
+                });
+                break;
+            case 'loadedmetadata':
+            case 'canplay':
+                addDurationListener((duration) => {
+                    if (duration) listener();
+                });
+                break;
+            case 'ended':
+                addEndedListener(listener);
+                break;
+            default:
+                throw new Error(`Unknown event type: "${type}"`);
             }
         };
 

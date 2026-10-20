@@ -5,7 +5,8 @@ import rename from 'gulp-rename';
 import postcss from 'gulp-postcss';
 import cssnano from 'cssnano';
 import autoprefixer from 'autoprefixer';
-import eslint from 'gulp-eslint';
+import eslint from 'gulp-eslint-new';
+import eslintConfig from './eslint.config.js';
 import sasslint from 'gulp-sass-lint';
 import browserify from 'browserify';
 import babelify from 'babelify';
@@ -43,8 +44,14 @@ const scripts = () => browserify({
     .pipe(gulp.dest('dist/js'))
     .pipe(server.stream());
 
-const scriptsLint = () => gulp.src('./src/js/*.js')
-    .pipe(eslint())
+const scriptsLint = () => gulp.src(['./src/js/*.js'])
+    .pipe(
+      eslint({
+        baseConfig: eslintConfig,
+        fix: process.argv[2] ? (process.argv[2] == '--fix') : false,
+        overrideConfigFile: null,
+      })
+    )
     .pipe(eslint.format());
 
 const stylesLint = () => gulp.src('./src/scss/**/*.scss')
@@ -57,14 +64,18 @@ const startServer = () => server.init({
     }
 });
 
+const copyTypes = () => gulp.src(['./src/types/*.d.ts'])
+    .pipe(gulp.dest('./dist/js'));
+
 const watchHTML = () => gulp.watch('./*.html').on('change', server.reload);
 const watchScripts = () => gulp.watch('./src/js/*.js', gulp.series('scriptsLint', 'scripts'));
+const watchTypes = () => gulp.watch('./src/types/*.d.ts', gulp.series('copyTypes'));
 const watchStyles = () => gulp.watch('./src/scss/**/*.scss', gulp.series('stylesLint', 'styles'));
 
-const compile = gulp.parallel(styles, scripts);
+const compile = gulp.parallel(styles, scripts, copyTypes);
 const lint = gulp.parallel(scriptsLint, stylesLint);
 const serve = gulp.series(compile, startServer);
-const watch = gulp.series(lint, gulp.parallel(watchHTML, watchScripts, watchStyles));
+const watch = gulp.series(lint, gulp.parallel(watchHTML, watchScripts, watchTypes, watchStyles));
 const defaultTasks = gulp.parallel(serve, watch);
 
 export {
@@ -72,8 +83,10 @@ export {
     scripts,
     scriptsLint,
     stylesLint,
+    copyTypes,
     watchHTML,
     watchScripts,
+    watchTypes,
     watchStyles,
     startServer,
     serve,
