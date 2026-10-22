@@ -3,9 +3,8 @@ class GreenAudioPlayer {
         this.audioPlayer = typeof player === 'string' ? document.querySelector(player) : player;
         const opts = options || {};
 
-        const audioElement = this.audioPlayer.innerHTML;
         this.audioPlayer.classList.add('green-audio-player');
-        this.audioPlayer.innerHTML = GreenAudioPlayer.getTemplate() + audioElement;
+        this.audioPlayer.insertAdjacentHTML("afterbegin", GreenAudioPlayer.getTemplate());
 
         this.isDevice = /ipad|iphone|ipod|android/i.test(window.navigator.userAgent.toLowerCase()) && !window.MSStream;
         this.playPauseBtn = this.audioPlayer.querySelector('.play-pause-btn');
@@ -26,6 +25,7 @@ class GreenAudioPlayer {
         this.img = this.audioPlayer.getElementsByTagName('img');
         this.draggableClasses = ['pin'];
         this.currentlyDragged = null;
+        this.paused = true;
         this.stopOthersOnPlay = opts.stopOthersOnPlay || false;
         this.enableKeystrokes = opts.enableKeystrokes || false;
         this.showTooltips = opts.showTooltips || false;
@@ -84,18 +84,15 @@ class GreenAudioPlayer {
             const promise = this.player.play();
             if (promise !== undefined) {
                 promise.then(() => {
-                    const playPauseButton = self.player.parentElement.querySelector('.play-pause-btn__icon');
-                    playPauseButton.attributes.d.value = 'M0 0h6v24H0zM12 0h6v24h-6z';
-                    self.playPauseBtn.setAttribute('aria-label', self.labels.pause);
-                    self.hasSetAttribute(self.playPauseBtn, 'title', self.labels.pause);
+                    self.paused = false;
+                    self.playPauseBtnPlaying(true, self.playPauseBtn);
                 }).catch(() => {
                     console.error('Green Audio Player Error: Autoplay has been prevented, because it is not allowed by this browser.');
                 });
             }
         }
         if ('preload' in this.player.attributes && this.player.attributes.preload.value === 'none') {
-            this.playPauseBtn.style.visibility = 'visible';
-            this.loading.style.visibility = 'hidden';
+            this.hideLoadingIndicator();
         }
     }
 
@@ -146,8 +143,14 @@ class GreenAudioPlayer {
 
         if (typeof autoplay === 'boolean') altAudioBackend.attributes.autoplay = { value: autoplay };
         if (typeof preload === 'string') altAudioBackend.attributes.preload = { value: preload };
-        altAudioBackend.play = play;
-        altAudioBackend.pause = pause;
+        altAudioBackend.play = async () => {
+            altAudioBackend.paused = false;
+            await play();
+        };
+        altAudioBackend.pause = () => {
+            pause();
+            altAudioBackend.paused = true;
+        };
         altAudioBackend.setCurrentTime = setCurrentTime;
         altAudioBackend.setVolume = setVolume;
 
@@ -171,6 +174,11 @@ class GreenAudioPlayer {
             case 'seeked':
                 addSeekingListener((seeking) => {
                     if (!seeking) listener();
+                });
+                break;
+            case 'play':
+                addPausedListener((paused) => {
+                    if (!paused) listener();
                 });
                 break;
             case 'loadedmetadata':
@@ -296,13 +304,13 @@ class GreenAudioPlayer {
                 const handleMethod = self.currentlyDragged.target.dataset.method;
                 const listener = self[handleMethod].bind(self);
                 window.addEventListener('touchmove', listener, false);
-                if (self.currentlyDragged.parentElement.parentElement === self.sliders[0]) {
+                if (self.currentlyDragged?.parentElement?.parentElement === self.sliders[0]) {
                     self.paused = self.player.paused;
                     if (self.paused === false) self.togglePlay();
                 }
                 window.addEventListener('touchend', () => {
                     if (self.currentlyDragged !== false
-                        && self.currentlyDragged.parentElement.parentElement === self.sliders[0]
+                        && self.currentlyDragged?.parentElement?.parentElement === self.sliders[0]
                         && self.paused !== self.player.paused) {
                         self.togglePlay();
                     }
@@ -325,12 +333,15 @@ class GreenAudioPlayer {
         this.player.addEventListener('seeking', this.showLoadingIndicator.bind(self));
         this.player.addEventListener('seeked', this.hideLoadingIndicator.bind(self));
         this.player.addEventListener('canplay', this.hideLoadingIndicator.bind(self));
+        this.player.addEventListener('play', () => {
+            self.hideLoadingIndicator();
+            self.playPauseBtnPlaying(true, self.playPauseBtn);
+        });
         this.player.addEventListener('ended', () => {
-            GreenAudioPlayer.pausePlayer(self.player, 'ended');
+            self.player.pause();
             if (typeof self.player.currentTime !== 'undefined') self.player.currentTime = 0;
             if (typeof self.player.setCurrentTime !== 'undefined') self.player.setCurrentTime(0);
-            self.playPauseBtn.setAttribute('aria-label', self.labels.play);
-            self.hasSetAttribute(self.playPauseBtn, 'title', self.labels.play);
+            self.playPauseBtnPlaying(false, self.playPauseBtn);
         });
 
         this.volumeBtn.addEventListener('click', this.showHideVolume.bind(self));
@@ -498,26 +509,22 @@ class GreenAudioPlayer {
     }
 
     preloadNone() {
-        const self = this;
         if (!this.player.duration) {
-            self.playPauseBtn.style.visibility = 'hidden';
-            self.loading.style.visibility = 'visible';
+            this.showLoadingIndicator();
         }
     }
 
     togglePlay() {
         this.preloadNone();
         if (this.player.paused) {
-            if (this.stopOthersOnPlay) {
-                GreenAudioPlayer.stopOtherPlayers();
+            if (this.stopOthersOnPlay && this.player instanceof HTMLElement) {
+                this.stopOtherPlayers();
             }
-            GreenAudioPlayer.playPlayer(this.player);
-            this.playPauseBtn.setAttribute('aria-label', this.labels.pause);
-            this.hasSetAttribute(this.playPauseBtn, 'title', this.labels.pause);
+            this.player.play();
+            this.playPauseBtnPlaying(true, this.playPauseBtn);
         } else {
-            GreenAudioPlayer.pausePlayer(this.player, 'toggle');
-            this.playPauseBtn.setAttribute('aria-label', this.labels.play);
-            this.hasSetAttribute(this.playPauseBtn, 'title', this.labels.play);
+            this.player.pause();
+            this.playPauseBtnPlaying(false, this.playPauseBtn);
         }
     }
 
@@ -622,23 +629,26 @@ class GreenAudioPlayer {
         }
     }
 
-    static pausePlayer(player) {
-        const playPauseButton = player.parentElement.querySelector('.play-pause-btn__icon');
-        playPauseButton.attributes.d.value = 'M18 12L0 24V0';
-        player.pause();
-    }
-
-    static playPlayer(player) {
-        const playPauseButton = player.parentElement.querySelector('.play-pause-btn__icon');
-        playPauseButton.attributes.d.value = 'M0 0h6v24H0zM12 0h6v24h-6z';
-        player.play();
-    }
-
-    static stopOtherPlayers() {
-        const players = document.querySelectorAll('.green-audio-player audio');
-
+    stopOtherPlayers() {
+        const players = document.querySelectorAll('.green-audio-player');
         for (let i = 0; i < players.length; i++) {
-            GreenAudioPlayer.pausePlayer(players[i]);
+            players[i].querySelector('audio')?.pause();
+            this.playPauseBtnPlaying(false, players[i].querySelector('.play-pause-btn'));
+        }
+    }
+
+    playPauseBtnPlaying(playing, btn) {
+        const icon = btn.firstElementChild.firstElementChild;
+
+        if (playing) {
+            icon.attributes.d.value = 'M0 0h6v24H0zM12 0h6v24h-6z';
+            btn.setAttribute('aria-label', this.labels.pause);
+            this.hasSetAttribute(btn, 'title', this.labels.pause);
+
+        } else {
+            icon.attributes.d.value = 'M18 12L0 24V0';
+            btn.setAttribute('aria-label', this.labels.play);
+            this.hasSetAttribute(btn, 'title', this.labels.play);
         }
     }
 

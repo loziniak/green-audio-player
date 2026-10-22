@@ -16,14 +16,14 @@ export default class GreenAudioPlayer {
    * Initialize all audio players matching selector automatically
    * @param options - Configuration options with required selector property
    */
-  static init(options: { selector: string }): void;
+  static init(options: { selector: string } & GreenAudioPlayerOptions): void;
 
   /**
    * Create custom audio backend for advanced use cases
    * @param autoplay - Autoplay boolean attribute
    * @param preload - Preload attribute ('none' | 'metadata' | 'auto')
    * @param play - Function to play audio
-   * @param pause - Function to pause audio  
+   * @param pause - Function to pause audio
    * @param setCurrentTime - Function to set current position
    * @param setVolume - Function to set volume level
    * @param addPositionListener - Called when position changes
@@ -65,23 +65,6 @@ export default class GreenAudioPlayer {
    */
   static formatTime(time: number): string;
 
-  /**
-   * Pause a specific audio player
-   * @param player - Audio element/pref
-   */
-  static pausePlayer(player: HTMLAudioElement): void;
-
-  /**
-   * Play a specific audio player
-   * @param player - Audio element
-   */
-  static playPlayer(player: HTMLAudioElement): void;
-
-  /**
-   * Stop all other green audio players on screen
-   */
-  static stopOtherPlayers(): void;
-
   // Instance methods (not accessible in UMD format, shown for documentation)
   initEvents(): void;
   overcomeIosLimitations(): void;
@@ -107,9 +90,13 @@ export default class GreenAudioPlayer {
   showDownload(): void;
   downloadAudio(): void;
   directionAware(): void;
+
+  stopOtherPlayers(): void;
+  playPauseBtnPlaying(playing: boolean, btn: HTMLElement): void;
 }
 
 export interface GreenAudioPlayerOptions {
+  selector?: string;
   stopOthersOnPlay?: boolean;
   enableKeystrokes?: boolean;
   showTooltips?: boolean;
@@ -133,6 +120,6 @@ export interface PartialAudioBackend {
   setVolume(volume: number): void;
   addEventListener(
     type: string,
-    listener: (value: number | boolean | string) => void
+    listener: () => void
   ): void;
 }
